@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+    <title>Flight Route Planner</title>
+</head>
+<body>
+    <h1>Flight Route Planner</h1>
+    <form id="routeForm">
+        <label for="origin">Origin Airport:</label>
+        <input type="text" id="origin" name="origin">
+        <label for="destination">Destination Airport:</label>
+        <input type="text" id="destination" name="destination">
+        <button type="submit">Get Route</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('routeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+            
+            fetch('/route', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ origin, destination })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `Error: ${data.error}`;
+                } else {
+                    document.getElementById('result').innerHTML = `Optimal path from ${origin} to ${destination} with total cost ${data.cost}: ${data.path.join(' -> ')}`;
+                    document.getElementById('result').innerHTML += `<br>Weather at ${origin}: ${data.weather_origin.description}, Temp: ${data.weather_origin.main.temp}°C`;
+                    document.getElementById('result').innerHTML += `<br>Weather at ${destination}: ${data.weather_destination.description}, Temp: ${data.weather_destination.main.temp}°C`;
+                    document.getElementById('result').innerHTML += `<br>Predicted Delay: ${data.predicted_delay} minutes`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'An error occurred while fetching the route.';
+            });
+        });
+    </script>
+</body>
+</html>
